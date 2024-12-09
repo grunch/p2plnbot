@@ -1,11 +1,12 @@
 import { Telegraf } from "telegraf";
-import { MainContext } from "../bot/start";
 
 import { Order } from '../models';
-const { deleteOrderFromChannel } = require('../util');
+import { deleteOrderFromChannel } from '../util';
 import { logger } from '../logger';
+import { CommunityContext } from "../bot/modules/community/communityContext";
+import { IOrder } from "../models/order";
 
-const deleteOrders = async (bot: Telegraf<MainContext>) => {
+const deleteOrders = async (bot: Telegraf<CommunityContext>) => {
   try {
     const windowTime = new Date();
     windowTime.setSeconds(
@@ -21,7 +22,7 @@ const deleteOrders = async (bot: Telegraf<MainContext>) => {
       logger.info(
         `Pending order Id: ${order._id} expired after ${process.env.ORDER_PUBLISHED_EXPIRATION_WINDOW} seconds, deleting it from database and channel`
       );
-      const orderCloned = order.toObject();
+      const orderCloned = order.toObject() as IOrder;
       // We remove the order from the database first, then we remove the message from the channel
       await order.remove();
       // We delete the messages related to that order from the channel

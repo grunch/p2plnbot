@@ -3,12 +3,13 @@ import * as messages from '../bot/messages';
 import { logger } from "../logger";
 import { Telegraf } from 'telegraf';
 import { I18nContext } from '@grammyjs/i18n';
-import { MainContext } from '../bot/start';
-const { payRequest, isPendingPayment } = require('../ln');
 import { getUserI18nContext } from '../util';
-const { orderUpdated } = require('../bot/modules/events/orders');
+import { CommunityContext } from '../bot/modules/community/communityContext';
+import { orderUpdated } from '../bot/modules/events/orders';
 
-export const attemptPendingPayments = async (bot: Telegraf<MainContext>): Promise<void> => {
+const { payRequest, isPendingPayment } = require('../ln');
+
+export const attemptPendingPayments = async (bot: Telegraf<CommunityContext>): Promise<void> => {
   const pendingPayments = await PendingPayment.find({
     paid: false,
     attempts: { $lt: process.env.PAYMENT_ATTEMPTS },
@@ -35,7 +36,7 @@ export const attemptPendingPayments = async (bot: Telegraf<MainContext>): Promis
       // If one of the payments is on flight we don't do anything
       if (isPending || isPendingOldPayment) return;
 
-      let payment = await payRequest({
+      const payment = await payRequest({
         amount: pending.amount,
         request: pending.payment_request,
       });
@@ -118,7 +119,7 @@ export const attemptPendingPayments = async (bot: Telegraf<MainContext>): Promis
   }
 };
 
-export const attemptCommunitiesPendingPayments = async (bot: Telegraf<MainContext>): Promise<void> => {
+export const attemptCommunitiesPendingPayments = async (bot: Telegraf<CommunityContext>): Promise<void> => {
   const pendingPayments = await PendingPayment.find({
     paid: false,
     attempts: { $lt: process.env.PAYMENT_ATTEMPTS },

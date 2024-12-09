@@ -1,11 +1,12 @@
 import "dotenv/config";
 import { SocksProxyAgent } from "socks-proxy-agent";
-import { MainContext, start } from "./bot/start";
+import { start } from "./bot/start";
 import { connect as mongoConnect } from './db_connect'
-const { resubscribeInvoices } = require('./ln');
+import { resubscribeInvoices } from './ln';
 import { logger } from "./logger";
 import { Telegraf } from "telegraf";
-const { delay } = require('./util');
+import { delay } from './util';
+import { CommunityContext } from "./bot/modules/community/communityContext";
 
 (async () => {
   process.on('unhandledRejection', e => {
@@ -24,7 +25,7 @@ const { delay } = require('./util');
   mongoose.connection
     .once('open', async () => {
       logger.info('Connected to Mongo instance.');
-      let options: Partial<Telegraf.Options<MainContext>> = { handlerTimeout: 60000 };
+      let options: Partial<Telegraf.Options<CommunityContext>> = { handlerTimeout: 60000 };
       if (process.env.SOCKS_PROXY_HOST) {
         const agent = new SocksProxyAgent(process.env.SOCKS_PROXY_HOST);
         options = {

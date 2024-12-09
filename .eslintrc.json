@@ -5,6 +5,7 @@
     "node": true,
     "jest": true
   },
+  "parser": "@typescript-eslint/parser",
   "extends": ["standard", "eslint-config-prettier"],
   "parserOptions": {
     "ecmaVersion": "latest"

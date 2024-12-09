@@ -1,11 +1,11 @@
 import { Telegraf } from "telegraf";
-import { MainContext } from "../bot/start";
-
 import { Config } from '../models';
-const { getInfo } = require('../ln');
-const { logger } = require('../logger');
+import { CommunityContext } from "../bot/modules/community/communityContext";
+import { logger } from '../logger';
 
-const info = async (bot: Telegraf<MainContext>) => {
+const { getInfo } = require('../ln');
+
+const info = async (bot: Telegraf<CommunityContext>) => {
   try {
     let config = await Config.findOne({});
     if (config === null) {

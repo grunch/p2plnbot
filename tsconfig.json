@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "downlevelIteration": true,
+    "lib":["ES2021", "DOM"],
     "outDir": "./dist",
     "rootDir": ".",
-    "allowJs": true,
     "moduleResolution": "node"
   },
   "include": [

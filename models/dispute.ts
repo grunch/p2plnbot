@@ -2,8 +2,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IDispute extends Document {
   initiator: string;
-  seller_id: string;
-  buyer_id: string;
+  seller_id: string | null;
+  buyer_id: string | null;
   status: string;
   community_id: string;
   order_id: string;

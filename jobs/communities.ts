@@ -1,10 +1,10 @@
 import { Telegraf } from "telegraf";
-import { MainContext } from "../bot/start";
 
 import { Order, Community } from '../models';
 import { logger } from "../logger";
+import { CommunityContext } from "../bot/modules/community/communityContext";
 
-const deleteCommunity = async (bot: Telegraf<MainContext>) => {
+const deleteCommunity = async (bot: Telegraf<CommunityContext>) => {
   try {
     const communities = await Community.find();
     for (const community of communities) {

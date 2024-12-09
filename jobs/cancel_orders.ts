@@ -1,13 +1,13 @@
-import { Telegraf } from "telegraf";
-import { MainContext } from "../bot/start";
+import { HasTelegram } from "../bot/start";
 import { User, Order } from "../models";
-const { cancelShowHoldInvoice, cancelAddInvoice } = require('../bot/commands');
+import { cancelShowHoldInvoice, cancelAddInvoice } from '../bot/commands';
 import * as messages from "../bot/messages";
 import { getUserI18nContext, holdInvoiceExpirationInSecs } from '../util';
 import { logger } from "../logger";
-const OrderEvents = require('../bot/modules/events/orders');
+import { CommunityContext } from "../bot/modules/community/communityContext";
+import * as OrderEvents from '../bot/modules/events/orders';
 
-const cancelOrders = async (bot: Telegraf<MainContext>) => {
+const cancelOrders = async (bot: HasTelegram) => {
   try {
     const holdInvoiceTime = new Date();
     holdInvoiceTime.setSeconds(
@@ -30,9 +30,9 @@ const cancelOrders = async (bot: Telegraf<MainContext>) => {
     });
     for (const order of waitingPaymentOrders) {
       if (order.status === 'WAITING_PAYMENT') {
-        await cancelShowHoldInvoice(bot, order, true);
+        await cancelShowHoldInvoice(bot as CommunityContext, order, true);
       } else {
-        await cancelAddInvoice(bot, order, true);
+        await cancelAddInvoice(bot as CommunityContext, order, true);
       }
     }
     // We get the expired order where the seller sent the sats but never released the order

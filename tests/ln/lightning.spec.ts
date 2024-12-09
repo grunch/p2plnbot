@@ -1,9 +1,10 @@
-const sinon = require('sinon');
-const { expect } = require('chai');
 import lightning from 'lightning';
-const { parsePaymentRequest } = require('invoices');
 import { mockCreateHodlResponseForLightning } from './mocks/lightningResponse';
 const { createHoldInvoice } = require('../../ln');
+
+const sinon = require('sinon');
+const { expect } = require('chai');
+const { parsePaymentRequest } = require('invoices');
 
 describe('Lighting network', () => {
   it('Should create hold invoice', async () => {

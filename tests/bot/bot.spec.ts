@@ -1,14 +1,15 @@
 import path from 'path';
 import fs from 'fs';
-const sinon = require('sinon');
-const { expect } = require('chai');
-const proxyquire = require('proxyquire');
 
-const { initialize } = require('../../bot');
+import { initialize } from '../../bot';
 import { User, Order } from '../../models';
 import { getCurrenciesWithPrice } from '../../util';
 import { mockUpdatesResponseForCurrencies } from './mocks/currenciesResponse';
 import { mockUpdatesResponseForLanguages } from './mocks/languagesResponse';
+
+const sinon = require('sinon');
+const { expect } = require('chai');
+const proxyquire = require('proxyquire');
 
 describe('Telegram bot', () => {
   const token = '123456';

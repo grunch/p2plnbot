@@ -29,6 +29,7 @@ const NostrModule = require('./modules/nostr');
 const OrdersModule = require('./modules/orders');
 const UserModule = require('./modules/user');
 const DisputeModule = require('./modules/dispute');
+const BlockModule = require('./modules/block');
 const {
   rateUser,
   cancelAddInvoice,
@@ -257,6 +258,7 @@ const initialize = (botToken: string, options: Partial<Telegraf.Options<MainCont
   NostrModule.configure(bot);
   CommunityModule.configure(bot);
   LanguageModule.configure(bot);
+  BlockModule.configure(bot);
 
   bot.command('release', userMiddleware, async ctx => {
     try {

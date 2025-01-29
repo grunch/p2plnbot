@@ -770,6 +770,28 @@ const bannedUserErrorMessage = async (ctx: MainContext, user: UserDocument) => {
   }
 };
 
+const userOrderIsBlockedByUserTaker = async (ctx: MainContext, user: UserDocument) => {
+  try {
+    await ctx.telegram.sendMessage(
+      user.tg_id,
+      ctx.i18n.t('user_order_is_blocked_by_user_taker')
+    );
+  } catch (error) {
+    logger.error(error);
+  }
+};
+
+const userTakerIsBlockedByUserOrder = async (ctx: MainContext, user: UserDocument) => {
+  try {
+    await ctx.telegram.sendMessage(
+      user.tg_id,
+      ctx.i18n.t('user_taker_is_blocked_by_user_order')
+    );
+  } catch (error) {
+    logger.error(error);
+  }
+};
+
 const fiatSentMessages = async (ctx: MainContext, buyer: UserDocument, seller: UserDocument, i18nBuyer: I18nContext, i18nSeller: I18nContext) => {
   try {
     await ctx.telegram.sendMessage(
@@ -1748,4 +1770,6 @@ export {
   showConfirmationButtons,
   counterPartyCancelOrderMessage,
   checkInvoiceMessage,
+  userTakerIsBlockedByUserOrder,
+  userOrderIsBlockedByUserTaker
 };

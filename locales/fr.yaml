@@ -642,3 +642,10 @@ privacy: |
   *2. Comment nous utilisons les informations:* 
     - _Système de réputation:_ Pour construire et maintenir le système de réputation de chaque utilisateur.
     - _Résolution des litiges:_ En cas de litige, nous fournissons au médiateur (solver) les informations suivantes : votre nom d'utilisateur, votre identifiant Telegram, le nombre de transactions effectuées, la note de la contrepartie, le nombre de jours d'utilisation du bot et le nombre de litiges accumulés.
+user_already_blocked: User is already blocked
+user_blocked: User successfully blocked
+user_unblocked: User successfully unblocked
+blocklist_empty: You do not have any blocked user
+orders_in_process: There are orders in process with this user
+user_order_is_blocked_by_user_taker: You can't take this order because you blocked its maker
+user_taker_is_blocked_by_user_order: You can't take this order because its maker blocked you

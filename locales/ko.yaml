@@ -638,3 +638,10 @@ privacy: |
   *2. 정보 사용 방법:* 
     - _평판 시스템:_ 각 사용자의 평판 시스템을 구축하고 유지하기 위해 사용됩니다.
     - _분쟁 해결:_ 분쟁이 발생할 경우, 중재자(해결자)에게 사용자 이름, Telegram ID, 완료된 거래 수, 상대방의 평가, 봇 사용 일수, 누적된 분쟁 수와 같은 정보를 제공합니다.
+user_already_blocked: User is already blocked
+user_blocked: User successfully blocked
+user_unblocked: User successfully unblocked
+blocklist_empty: You do not have any blocked user
+orders_in_process: There are orders in process with this user
+user_order_is_blocked_by_user_taker: You can't take this order because you blocked its maker
+user_taker_is_blocked_by_user_order: You can't take this order because its maker blocked you

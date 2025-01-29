@@ -643,3 +643,10 @@ privacy: |
   *2. Cómo Utilizamos la Información:* 
     - _Sistema de Reputación:_ Para construir y mantener el sistema de reputación de cada usuario.
     - _Resolución de Disputas:_ En caso de una disputa, proporcionamos al mediador (solver) la siguiente información: tu nombre de usuario, ID de Telegram, número de transacciones concretadas, calificación de la contraparte, cantidad de días usando el bot y el número de disputas acumuladas.
+user_already_blocked: El usuario ya está bloqueado
+user_blocked: Usuario bloqueado correctamente
+user_unblocked: Usuario desbloqueado correctamente
+blocklist_empty: No tienes ningun usuario bloqueado
+orders_in_process: Hay ordenes en proceso con este usuario
+user_order_is_blocked_by_user_taker: No puedes aceptar esta oferta porque has bloqueado a su creador
+user_taker_is_blocked_by_user_order: No puedes aceptar esta oferta porque su creador te ha bloqueado

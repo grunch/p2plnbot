@@ -643,3 +643,10 @@ privacy: |
   *2. Как мы используем информацию:* 
     - _Система репутации:_ Для создания и поддержания системы репутации каждого пользователя.
     - _Разрешение споров:_ В случае спора мы предоставляем медиатору (решателю) следующую информацию: ваше имя пользователя, ID Telegram, количество завершенных транзакций, рейтинг контрагента, количество дней использования бота и количество накопленных споров.
+user_already_blocked: User is already blocked
+user_blocked: User successfully blocked
+user_unblocked: User successfully unblocked
+blocklist_empty: You do not have any blocked user
+orders_in_process: There are orders in process with this user
+user_order_is_blocked_by_user_taker: You can't take this order because you blocked its maker
+user_taker_is_blocked_by_user_order: You can't take this order because its maker blocked you

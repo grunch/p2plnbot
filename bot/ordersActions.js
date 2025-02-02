@@ -295,9 +295,32 @@ const getNewRangeOrderPayload = async order => {
   }
 };
 
+const updateOrderStatus = async (orderId, newStatus) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status: newStatus },
+      { new: true }
+    );
+    
+    if (order) {
+      OrderEvents.orderUpdated(order);
+    }
+    
+    return order;
+  } catch (error) {
+    logger.error(error);
+    return null;
+  }
+};
+
+
+
+
 module.exports = {
   createOrder,
   getOrder,
   getOrders,
   getNewRangeOrderPayload,
+  updateOrderStatus,
 };

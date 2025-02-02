@@ -7,6 +7,7 @@ import deleteOrders from "./delete_published_orders";
 import calculateEarnings from './calculate_community_earnings'
 import deleteCommunity from './communities'
 import nodeInfo from './node_info'
+import { startMonitoring } from "./holdInvoiceMonitor"; // Imported the startMonitoring function
 
 export {
   attemptPendingPayments,
@@ -16,4 +17,5 @@ export {
   attemptCommunitiesPendingPayments,
   deleteCommunity,
   nodeInfo,
+  startMonitoring,
 };

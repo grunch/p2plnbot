@@ -1,15 +1,16 @@
 // @ts-check
-const { Scenes } = require('telegraf');
-const CommunityModule = require('../modules/community');
+import { Scenes } from 'telegraf';
+import * as CommunityModule from '../modules/community';
 const OrdersModule = require('../modules/orders');
-const UserModule = require('../modules/user');
+import * as UserModule from '../modules/user';
+import { CommunityContext } from '../modules/community/communityContext';
 const {
   addInvoiceWizard,
   addFiatAmountWizard,
   addInvoicePHIWizard,
 } = require('../scenes');
 
-exports.stageMiddleware = () => {
+export const stageMiddleware = () => {
   const scenes = [
     addInvoiceWizard,
     addFiatAmountWizard,
@@ -34,8 +35,8 @@ exports.stageMiddleware = () => {
   return stage.middleware();
 };
 
-function addGenericCommands(scene) {
-  scene.command('exit', async ctx => {
+function addGenericCommands(scene: Scenes.WizardScene<CommunityContext>) {
+  scene.command('exit', async (ctx) => {
     await ctx.scene.leave();
     const text = ctx.i18n.t('wizard_exit');
     await ctx.reply(text);

@@ -1,4 +1,6 @@
-const commandArgs = () => (ctx, next) => {
+import { CommunityContext } from "../modules/community/communityContext";
+
+const commandArgs = () => (ctx: CommunityContext, next: () => void) => {
   if (ctx.message && ctx.message.text) {
     const text = ctx.message.text;
     if (text.startsWith('/')) {
@@ -12,7 +14,7 @@ const commandArgs = () => (ctx, next) => {
           command = match[1];
         }
         let next_arg = ['', '', match[2]];
-        while ((next_arg = re_next_arg.exec(next_arg[2]))) {
+        while ((next_arg = re_next_arg.exec(next_arg[2])!)) {
           let quoted_arg = next_arg[1];
           let unquoted_arg = '';
           while (quoted_arg.length > 0) {
@@ -49,4 +51,4 @@ const commandArgs = () => (ctx, next) => {
   return next();
 };
 
-module.exports = commandArgs;
+export default commandArgs;

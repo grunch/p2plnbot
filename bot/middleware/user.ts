@@ -1,10 +1,8 @@
-const {
-  validateUser,
-  validateAdmin,
-  validateSuperAdmin,
-} = require('../validations');
+import { MainContext } from "../start";
 
-exports.userMiddleware = async (ctx, next) => {
+import { validateUser, validateAdmin, validateSuperAdmin } from '../validations';
+
+export const userMiddleware = async (ctx: MainContext, next: () => void) => {
   const user = await validateUser(ctx, false);
   if (!user) return false;
   ctx.i18n.locale(user.lang);
@@ -13,7 +11,7 @@ exports.userMiddleware = async (ctx, next) => {
   next();
 };
 
-exports.adminMiddleware = async (ctx, next) => {
+export const adminMiddleware = async (ctx: MainContext, next: () => void) => {
   const admin = await validateAdmin(ctx);
   if (!admin) return false;
   ctx.i18n.locale(admin.lang);
@@ -22,7 +20,7 @@ exports.adminMiddleware = async (ctx, next) => {
   next();
 };
 
-exports.superAdminMiddleware = async (ctx, next) => {
+export const superAdminMiddleware = async (ctx: MainContext, next: () => void) => {
   const admin = await validateSuperAdmin(ctx);
   if (!admin) return false;
   ctx.i18n.locale(admin.lang);

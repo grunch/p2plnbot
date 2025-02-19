@@ -646,3 +646,5 @@ privacy: |
   *2. How We Use the Information:* 
     - _Reputation System:_ To build and maintain the reputation system for each user.
     - _Dispute Resolution:_ In case of a dispute, we provide the mediator (solver) with the following information: your username, Telegram ID, number of completed transactions, counterpart's rating, number of days using the bot, and the number of accumulated disputes.
+check_solvers: Your community ${communityName} does not have any solvers. Please add at least one within ${remainingDays} days to prevent the community from being disabled.
+check_solvers_last_warning: Your community ${communityName} does not have any solvers. Please add at least one today to prevent the community from being disabled.

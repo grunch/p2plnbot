@@ -643,3 +643,5 @@ privacy: |
   *2. Wie wir die Informationen verwenden:* 
     - _Reputationssystem:_ Um das Reputationssystem für jeden Benutzer aufzubauen und zu pflegen.
     - _Streitbeilegung:_ Im Falle eines Streits stellen wir dem Mediator (Löser) die folgenden Informationen zur Verfügung: Ihren Benutzernamen, Ihre Telegram-ID, die Anzahl der abgeschlossenen Transaktionen, die Bewertung des Gegenübers, die Anzahl der Tage, an denen Sie den Bot verwendet haben, und die Anzahl der angesammelten Streitfälle.
+check_solvers: Ihre Community ${communityName} hat keine Solver. Bitte fügen Sie innerhalb von ${remainingDays} Tagen mindestens einen hinzu, um zu verhindern, dass die Community deaktiviert wird.
+check_solvers_last_warning: Ihre Community ${communityName} hat keine Solver. Bitte fügen Sie noch heute mindestens einen hinzu, um zu verhindern, dass die Community deaktiviert wird.

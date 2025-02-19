@@ -642,3 +642,5 @@ privacy: |
   *2. Comment nous utilisons les informations:* 
     - _Système de réputation:_ Pour construire et maintenir le système de réputation de chaque utilisateur.
     - _Résolution des litiges:_ En cas de litige, nous fournissons au médiateur (solver) les informations suivantes : votre nom d'utilisateur, votre identifiant Telegram, le nombre de transactions effectuées, la note de la contrepartie, le nombre de jours d'utilisation du bot et le nombre de litiges accumulés.
+check_solvers: Votre communauté ${communityName} ne possède aucun solveur. Veuillez en ajouter au moins un dans les ${remainingDays} jours pour éviter que la communauté ne soit désactivée.
+check_solvers_last_warning: Votre communauté ${communityName} ne possède aucun solveur. Veuillez en ajouter au moins un aujourd'hui pour éviter que la communauté ne soit désactivée.

@@ -62,6 +62,7 @@ import {
   attemptCommunitiesPendingPayments,
   deleteCommunity,
   nodeInfo,
+  checkSolvers,
 } from '../jobs';
 import { logger } from "../logger";
 import { ICommunity, IUsernameId } from '../models/community';
@@ -197,6 +198,10 @@ const initialize = (botToken: string, options: Partial<Telegraf.Options<MainCont
 
   schedule.scheduleJob(`* * * * *`, async () => {
     await nodeInfo(bot);
+  });
+
+  schedule.scheduleJob(`0 0 * * *`, async () => {
+    await checkSolvers(bot);
   });
 
   bot.start(async (ctx: MainContext) => {

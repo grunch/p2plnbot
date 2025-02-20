@@ -1,23 +1,21 @@
-const { Scenes, Markup } = require('telegraf');
-const { logger } = require('../../../logger');
-const { getCurrency } = require('../../../util');
-const ordersActions = require('../../ordersActions');
-const {
-  publishBuyOrderMessage,
-  publishSellOrderMessage,
-} = require('../../messages');
-const messages = require('./messages');
+import { Scenes, Markup } from 'telegraf';
+import { logger } from '../../../logger';
+import { getCurrency } from '../../../util';
+import * as ordersActions from '../../ordersActions';
+import { publishBuyOrderMessage, publishSellOrderMessage } from '../../messages';
+import * as messages from './messages';
+import { CommunityContext } from '../community/communityContext';
 
-const CREATE_ORDER = (exports.CREATE_ORDER = 'CREATE_ORDER_WIZARD');
+export const CREATE_ORDER = 'CREATE_ORDER_WIZARD';
 
-exports.middleware = () => {
+export const middleware = () => {
   const stage = new Scenes.Stage([createOrder]);
   return stage.middleware();
 };
 
-const createOrder = (exports.createOrder = new Scenes.WizardScene(
+export const createOrder = new Scenes.WizardScene(
   CREATE_ORDER,
-  async ctx => {
+  async (ctx: CommunityContext) => {
     try {
       const {
         user,
@@ -48,7 +46,7 @@ const createOrder = (exports.createOrder = new Scenes.WizardScene(
             await ctx.telegram.editMessageText(
               res.chat.id,
               res.message_id,
-              null,
+              undefined,
               text
             );
             ctx.wizard.state.currentStatusText = text;
@@ -95,16 +93,17 @@ const createOrder = (exports.createOrder = new Scenes.WizardScene(
         delete ctx.wizard.state.handler;
       }
       await ctx.wizard.selectStep(0);
-      return ctx.wizard.steps[ctx.wizard.cursor](ctx);
+      // use ["steps"] syntax as steps is private property
+      return ctx.wizard["steps"][ctx.wizard.cursor](ctx);
     } catch (err) {
       logger.error(err);
       return ctx.scene.leave();
     }
   }
-));
+);
 
 const createOrderSteps = {
-  async currency(ctx) {
+  async currency(ctx: CommunityContext) {
     const prompt = await createOrderPrompts.currency(ctx);
     const deletePrompt = () =>
       ctx.telegram.deleteMessage(prompt.chat.id, prompt.message_id);
@@ -122,7 +121,7 @@ const createOrderSteps = {
         await ctx.wizard.state.updateUI();
       } else {
         if (!ctx.callbackQuery) return;
-        const currency = ctx.callbackQuery.data;
+        const currency: string = (ctx.callbackQuery as any).data;
         ctx.wizard.state.currency = currency;
         await ctx.wizard.state.updateUI();
       }
@@ -130,7 +129,7 @@ const createOrderSteps = {
     };
     return ctx.wizard.next();
   },
-  async fiatAmount(ctx) {
+  async fiatAmount(ctx: CommunityContext) {
     ctx.wizard.state.handler = async ctx => {
       await createOrderHandlers.fiatAmount(ctx);
       return await ctx.telegram.deleteMessage(
@@ -141,7 +140,7 @@ const createOrderSteps = {
     const prompt = await createOrderPrompts.fiatAmount(ctx);
     return ctx.wizard.next();
   },
-  async method(ctx) {
+  async method(ctx: CommunityContext) {
     ctx.wizard.state.handler = async ctx => {
       if (ctx.message === undefined) return ctx.scene.leave();
       const { text } = ctx.message;
@@ -157,7 +156,7 @@ const createOrderSteps = {
     const prompt = await ctx.reply(ctx.i18n.t('enter_payment_method'));
     return ctx.wizard.next();
   },
-  async priceMargin(ctx) {
+  async priceMargin(ctx: CommunityContext) {
     const prompt = await createOrderPrompts.priceMargin(ctx);
     ctx.wizard.state.handler = async ctx => {
       ctx.wizard.state.error = null;
@@ -165,16 +164,17 @@ const createOrderSteps = {
         if (ctx.message === undefined) return ctx.scene.leave();
         const { text } = ctx.message;
         if (!text) return;
+        const num = Number(text);
         await ctx.deleteMessage();
-        if (isNaN(text)) {
+        if (isNaN(num)) {
           ctx.wizard.state.error = ctx.i18n.t('not_number');
 
           return await ctx.wizard.state.updateUI();
         }
-        ctx.wizard.state.priceMargin = parseInt(text);
+        ctx.wizard.state.priceMargin = Math.floor(num);
         await ctx.wizard.state.updateUI();
       } else {
-        ctx.wizard.state.priceMargin = parseInt(ctx.callbackQuery.data);
+        ctx.wizard.state.priceMargin = parseInt((ctx.callbackQuery as any).data);
         await ctx.wizard.state.updateUI();
       }
       return await ctx.telegram.deleteMessage(
@@ -184,7 +184,7 @@ const createOrderSteps = {
     };
     return ctx.wizard.next();
   },
-  async sats(ctx) {
+  async sats(ctx: CommunityContext) {
     const prompt = await createOrderPrompts.sats(ctx);
     ctx.wizard.state.handler = async ctx => {
       const ret = await createOrderHandlers.sats(ctx);
@@ -199,7 +199,7 @@ const createOrderSteps = {
 };
 
 const createOrderPrompts = {
-  async priceMargin(ctx) {
+  async priceMargin(ctx: CommunityContext) {
     const margin = ['-5', '-4', '-3', '-2', '-1', '+1', '+2', '+3', '+4', '+5'];
     const buttons = margin.map(m => Markup.button.callback(m + '%', m));
     const rows = [];
@@ -221,7 +221,7 @@ const createOrderPrompts = {
       Markup.inlineKeyboard(rows)
     );
   },
-  async currency(ctx) {
+  async currency(ctx: CommunityContext) {
     const { currencies } = ctx.wizard.state;
     if (!currencies) return ctx.reply(ctx.i18n.t('enter_currency'));
     const buttons = currencies.map(currency =>
@@ -238,11 +238,11 @@ const createOrderPrompts = {
       Markup.inlineKeyboard(rows)
     );
   },
-  async fiatAmount(ctx) {
+  async fiatAmount(ctx: CommunityContext) {
     const { currency } = ctx.wizard.state;
     return ctx.reply(ctx.i18n.t('enter_currency_amount', { currency }));
   },
-  async sats(ctx) {
+  async sats(ctx: CommunityContext) {
     const button = Markup.button.callback(
       ctx.i18n.t('market_price'),
       'marketPrice'
@@ -255,7 +255,7 @@ const createOrderPrompts = {
 };
 
 const createOrderHandlers = {
-  async fiatAmount(ctx) {
+  async fiatAmount(ctx: CommunityContext) {
     if (ctx.message === undefined) return ctx.scene.leave();
     ctx.wizard.state.error = null;
     await ctx.deleteMessage();
@@ -292,13 +292,13 @@ const createOrderHandlers = {
 
     return true;
   },
-  async sats(ctx) {
+  async sats(ctx: CommunityContext) {
     if (ctx.callbackQuery) {
       ctx.wizard.state.sats = 0;
       await ctx.wizard.state.updateUI();
       return true;
     }
-    const input = ctx.message.text;
+    const input = Number(ctx.message?.text);
     await ctx.deleteMessage();
     if (isNaN(input)) {
       ctx.wizard.state.error = ctx.i18n.t('not_number');
@@ -310,7 +310,7 @@ const createOrderHandlers = {
       await ctx.wizard.state.updateUI();
       return;
     }
-    ctx.wizard.state.sats = parseInt(input);
+    ctx.wizard.state.sats = Math.floor(input);
     await ctx.wizard.state.updateUI();
     return true;
   },

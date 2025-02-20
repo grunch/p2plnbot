@@ -1,23 +1,52 @@
 const { ObjectId } = require('mongoose').Types;
-const { Order, Community } = require('../models');
-const messages = require('./messages');
-const {
-  getCurrency,
-  numberFormat,
-  getBtcExchangePrice,
-  getFee,
-  getUserAge,
-  getStars,
-  generateRandomImage,
-} = require('../util');
-const { logger } = require('../logger');
+import { Order, Community } from '../models';
+import * as messages from './messages';
+import { getCurrency, numberFormat, getBtcExchangePrice, getFee, getUserAge, getStars, generateRandomImage } from '../util';
+import { logger } from '../logger';
+import { I18nContext } from '@grammyjs/i18n';
+import { UserDocument } from '../models/user';
+import { MainContext } from './start';
+import { IOrder } from '../models/order';
+import { IFiat } from '../util/fiatModel';
 
 const OrderEvents = require('./modules/events/orders');
 
+interface CreateOrderArguments {
+  type: string;
+  amount: number;
+  fiatAmount: number[];
+  fiatCode: string;
+  paymentMethod: string;
+  status: string;
+  priceMargin: any; // ?
+  range_parent_id?: string;
+  tgChatId?: string;
+  tgOrderMessage?: string;
+  community_id: string;
+}
+
+interface BuildDescriptionArguments {
+  user: UserDocument;
+  type: string;
+  amount: number;
+  fiatAmount: number[];
+  fiatCode: string;
+  paymentMethod: string;
+  priceMargin: any; // ?
+  priceFromAPI: boolean;
+  currency: IFiat;
+}
+
+interface FiatAmountData {
+  fiat_amount?: number;
+  min_amount?: number;
+  max_amount?: number;
+}
+
 const createOrder = async (
-  i18n,
-  bot,
-  user,
+  i18n: I18nContext,
+  bot: MainContext,
+  user: UserDocument,
   {
     type,
     amount,
@@ -30,21 +59,29 @@ const createOrder = async (
     tgChatId,
     tgOrderMessage,
     community_id,
-  }
+  }: CreateOrderArguments
 ) => {
   try {
-    amount = parseInt(amount);
+    amount = Math.floor(amount);
     let isPublic = true;
     if (community_id) {
       const community = await Community.findById(community_id);
+      if(community == null)
+        throw new Error("community is null");
       isPublic = community.public;
     }
     const fee = await getFee(amount, community_id);
+    if(process.env.MAX_FEE === undefined)
+      throw new Error("Environment variable MAX_FEE is not defined");
+    if(process.env.FEE_PERCENT === undefined)
+      throw new Error("Environment variable FEE_PERCENT is not defined");
     // Global fee values at the moment of the order creation
     // We will need this to calculate the final amount
     const botFee = parseFloat(process.env.MAX_FEE);
     const communityFee = parseFloat(process.env.FEE_PERCENT);
     const currency = getCurrency(fiatCode);
+    if(currency == null)
+      throw new Error("currency is null");
     const priceFromAPI = !amount;
 
     if (priceFromAPI && !currency.price) {
@@ -114,8 +151,8 @@ const createOrder = async (
   }
 };
 
-const getFiatAmountData = fiatAmount => {
-  const response = {};
+const getFiatAmountData = (fiatAmount: number[]) => {
+  const response: FiatAmountData = {};
   if (fiatAmount.length === 2) {
     response.min_amount = fiatAmount[0];
     response.max_amount = fiatAmount[1];
@@ -127,7 +164,7 @@ const getFiatAmountData = fiatAmount => {
 };
 
 const buildDescription = (
-  i18n,
+  i18n: I18nContext,
   {
     user,
     type,
@@ -138,7 +175,7 @@ const buildDescription = (
     priceMargin,
     priceFromAPI,
     currency,
-  }
+  } : BuildDescriptionArguments
 ) => {
   try {
     const action = type === 'sell' ? i18n.t('selling') : i18n.t('buying');
@@ -176,9 +213,11 @@ const buildDescription = (
         i18n.t('rate') + `: ${process.env.FIAT_RATE_NAME} ${priceMarginText}\n`;
     } else {
       const exchangePrice = getBtcExchangePrice(fiatAmount[0], amount);
+      if (exchangePrice == null)
+        throw new Error("exchangePrice is null");
       tasaText =
         i18n.t('price') +
-        `: ${numberFormat(fiatCode, exchangePrice.toFixed(2))}\n`;
+        `: ${numberFormat(fiatCode, Number(exchangePrice.toFixed(2)))}\n`;
     }
 
     let rateText = '\n';
@@ -205,7 +244,7 @@ const buildDescription = (
   }
 };
 
-const getOrder = async (ctx, user, orderId) => {
+const getOrder = async (ctx: MainContext, user: UserDocument, orderId: string) => {
   try {
     if (!ObjectId.isValid(orderId)) {
       await messages.notValidIdMessage(ctx);
@@ -230,9 +269,9 @@ const getOrder = async (ctx, user, orderId) => {
   }
 };
 
-const getOrders = async (user, status) => {
+const getOrders = async (user: UserDocument, status?: string) => {
   try {
-    const where = {
+    const where: any = {
       $and: [
         {
           $or: [{ buyer_id: user._id }, { seller_id: user._id }],
@@ -261,11 +300,11 @@ const getOrders = async (user, status) => {
   }
 };
 
-const getNewRangeOrderPayload = async order => {
+const getNewRangeOrderPayload = async (order: IOrder) => {
   try {
     let newMaxAmount = 0;
 
-    if (order.max_amount !== undefined) {
+    if (order.max_amount !== undefined && order.fiat_amount !== undefined) {
       newMaxAmount = order.max_amount - order.fiat_amount;
     }
 
@@ -295,7 +334,7 @@ const getNewRangeOrderPayload = async order => {
   }
 };
 
-module.exports = {
+export {
   createOrder,
   getOrder,
   getOrders,

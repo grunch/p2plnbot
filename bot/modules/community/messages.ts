@@ -7,9 +7,9 @@ import { MainContext } from '../../start';
 
 export const createCommunityWizardStatus = (i18n: I18nContext, state: CommunityWizardState) => {
   try {
-    let { name, currencies, group } = state;
+    let { name, group } = state;
     name = state.name || '__';
-    currencies = state.currencies && state.currencies.join(', ');
+    let currencies = state.currencies && state.currencies.join(', ');
     currencies = currencies || '__';
     group = state.group || '__';
     let channels =

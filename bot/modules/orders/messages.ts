@@ -1,11 +1,12 @@
-const {
-  getOrderChannel,
-  sanitizeMD,
-  getTimeToExpirationOrder,
-} = require('../../../util');
-const { logger } = require('../../../logger');
+import { getOrderChannel, sanitizeMD, getTimeToExpirationOrder } from '../../../util';
+import { logger } from '../../../logger';
+import { IOrder } from '../../../models/order';
+import { I18nContext } from '@grammyjs/i18n';
+import { MainContext } from '../../start';
+import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
+import { CommunityWizardState } from '../community/communityContext';
 
-exports.listOrdersResponse = async (orders, i18n) => {
+export const listOrdersResponse = async (orders: IOrder[], i18n: I18nContext) => {
   const tasks = orders.map(async order => {
     const channel = await getOrderChannel(order);
     let amount = '\\-';
@@ -19,7 +20,7 @@ exports.listOrdersResponse = async (orders, i18n) => {
             sanitizeMD(order.max_amount),
           ].join('');
 
-    if (typeof order.amount !== 'undefined') amount = order.amount;
+    if (typeof order.amount !== 'undefined') amount = String(order.amount);
     const timeToExpire = getTimeToExpirationOrder(order, i18n);
     const details = [
       [''].join(''),
@@ -42,11 +43,11 @@ exports.listOrdersResponse = async (orders, i18n) => {
     text: body,
     extra: {
       parse_mode: 'MarkdownV2',
-    },
+    } as ExtraReplyMessage,
   };
 };
 
-exports.createOrderWizardStatus = (i18n, state) => {
+export const createOrderWizardStatus = (i18n: I18nContext, state: CommunityWizardState) => {
   const { type, priceMargin } = state;
   const action = type === 'sell' ? i18n.t('selling') : i18n.t('buying');
   const sats = state.sats ? state.sats + ' ' : '';
@@ -73,7 +74,7 @@ exports.createOrderWizardStatus = (i18n, state) => {
   return { text };
 };
 
-exports.deletedCommunityMessage = async ctx => {
+export const deletedCommunityMessage = async (ctx: MainContext) => {
   try {
     await ctx.reply(ctx.i18n.t('community_deleted'));
   } catch (error) {

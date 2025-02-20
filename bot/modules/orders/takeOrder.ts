@@ -1,28 +1,23 @@
 // @ts-check
-const { logger } = require('../../../logger');
-const { Order } = require('../../../models');
-const { deleteOrderFromChannel } = require('../../../util');
-const messages = require('../../messages');
-const {
-  validateUserWaitingOrder,
-  isBannedFromCommunity,
-  validateTakeSellOrder,
-  validateSeller,
-  validateObjectId,
-  validateTakeBuyOrder,
-} = require('../../validations');
+import { Telegraf } from 'telegraf';
+import { logger } from '../../../logger';
+import { Order } from '../../../models';
+import { deleteOrderFromChannel } from '../../../util';
+import * as messages from '../../messages';
+import { HasTelegram, MainContext } from '../../start';
+import { validateUserWaitingOrder, isBannedFromCommunity, validateTakeSellOrder, validateSeller, validateObjectId, validateTakeBuyOrder } from '../../validations';
 const OrderEvents = require('../../modules/events/orders');
 
-exports.takeOrderActionValidation = async (ctx, next) => {
+export const takeOrderActionValidation = async (ctx: MainContext, next: () => void) => {
   try {
-    const text = ctx.update.callback_query.message.text;
+    const text = (ctx.update as any).callback_query.message.text;
     if (!text) return;
     next();
   } catch (err) {
     logger.error(err);
   }
 };
-exports.takeOrderValidation = async (ctx, next) => {
+export const takeOrderValidation = async (ctx: MainContext, next: () => void) => {
   try {
     const { user } = ctx;
     if (!(await validateUserWaitingOrder(ctx, ctx, user))) return;
@@ -31,7 +26,7 @@ exports.takeOrderValidation = async (ctx, next) => {
     logger.error(err);
   }
 };
-exports.takebuyValidation = async (ctx, next) => {
+export const takebuyValidation = async (ctx: MainContext, next: () => void) => {
   try {
     // Sellers with orders in status = FIAT_SENT, have to solve the order
     const isOnFiatSentStatus = await validateSeller(ctx, ctx.user);
@@ -41,7 +36,7 @@ exports.takebuyValidation = async (ctx, next) => {
     logger.error(err);
   }
 };
-exports.takebuy = async (ctx, bot, orderId) => {
+export const takebuy = async (ctx: MainContext, bot: HasTelegram, orderId: string) => {
   try {
     if (!orderId) return;
     const { user } = ctx;
@@ -68,7 +63,7 @@ exports.takebuy = async (ctx, bot, orderId) => {
     logger.error(error);
   }
 };
-exports.takesell = async (ctx, bot, orderId) => {
+export const takesell = async (ctx: MainContext, bot: HasTelegram, orderId: string) => {
   try {
     const { user } = ctx;
     if (!orderId) return;

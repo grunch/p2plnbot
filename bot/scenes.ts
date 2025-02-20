@@ -1,23 +1,33 @@
-const { Scenes } = require('telegraf');
+import { Scenes } from 'telegraf';
 const { parsePaymentRequest } = require('invoices');
-const { isValidInvoice, validateLightningAddress } = require('./validations');
-const { Order, PendingPayment } = require('../models');
-const { waitPayment, addInvoice, showHoldInvoice } = require('./commands');
-const { getCurrency, getUserI18nContext } = require('../util');
-const messages = require('./messages');
+import { isValidInvoice, validateLightningAddress } from './validations';
+import { Order, PendingPayment } from '../models';
+import { waitPayment, addInvoice, showHoldInvoice } from './commands';
+import { getCurrency, getUserI18nContext } from '../util';
+import * as messages from './messages';
 const { isPendingPayment } = require('../ln');
-const { logger } = require('../logger');
-const { resolvLightningAddress } = require('../lnurl/lnurl-pay');
+import { logger } from '../logger';
+import { resolvLightningAddress } from '../lnurl/lnurl-pay';
+import { CommunityContext } from './modules/community/communityContext';
+const OrderEvents = require('./modules/events/orders');
+
+interface InvoiceParseResult { 
+  invoice?: any;
+  success?: boolean 
+}
 
 const addInvoiceWizard = new Scenes.WizardScene(
   'ADD_INVOICE_WIZARD_SCENE_ID',
   async ctx => {
     try {
-      const { order } = ctx.wizard.state;
-      const expirationTime =
-        parseInt(process.env.HOLD_INVOICE_EXPIRATION_WINDOW) / 60;
+      const communityCtx = ctx as CommunityContext;
+      const { order } = communityCtx.wizard.state;
+      const holdInvoiceExpirationWindow = process.env.HOLD_INVOICE_EXPIRATION_WINDOW;
+      if(holdInvoiceExpirationWindow === undefined)
+        throw new Error("Enviroment variable HOLD_INVOICE_EXPIRATION_WINDOW not defined");
+      const expirationTime = parseInt(holdInvoiceExpirationWindow) / 60;
       await messages.wizardAddInvoiceInitMessage(
-        ctx,
+        communityCtx,
         order,
         order.fiat_code,
         expirationTime
@@ -30,23 +40,26 @@ const addInvoiceWizard = new Scenes.WizardScene(
       logger.error(error);
     }
   },
-  async ctx => {
+  async (ctx: CommunityContext) => {
     try {
       if (ctx.message === undefined) return ctx.scene.leave();
-      if (ctx.message.document)
+      if ((ctx.message as any).document)
         return await ctx.reply(ctx.i18n.t('must_enter_text'));
 
       let { bot, buyer, seller, order } = ctx.wizard.state;
       // We get an updated order from the DB
-      order = await Order.findOne({ _id: order._id });
-      if (!order) {
+      const updatedOrder = await Order.findOne({ _id: order._id });
+      if(updatedOrder === null) {
         await ctx.reply(ctx.i18n.t('generic_error'));
         return ctx.scene.leave();
+      }
+      else {
+        order = updatedOrder;
       }
 
       let lnInvoice = ctx.message.text.trim();
       const isValidLN = await validateLightningAddress(lnInvoice);
-      let res = {};
+      let res: InvoiceParseResult = {};
       if (isValidLN) {
         const laRes = await resolvLightningAddress(
           lnInvoice,
@@ -84,7 +97,7 @@ const addInvoiceWizard = new Scenes.WizardScene(
 
 const addInvoicePHIWizard = new Scenes.WizardScene(
   'ADD_INVOICE_PHI_WIZARD_SCENE_ID',
-  async ctx => {
+  async (ctx: CommunityContext) => {
     try {
       const { buyer, order } = ctx.wizard.state;
       const i18nCtx = await getUserI18nContext(buyer);
@@ -95,23 +108,26 @@ const addInvoicePHIWizard = new Scenes.WizardScene(
       logger.error(error);
     }
   },
-  async ctx => {
+  async (ctx: CommunityContext) => {
     try {
       if (ctx.message === undefined) return ctx.scene.leave();
-      if (ctx.message.document)
+      if ((ctx.message as any).document)
         return await ctx.reply(ctx.i18n.t('must_enter_text'));
 
       let { buyer, order } = ctx.wizard.state;
       // We get an updated order from the DB
-      order = await Order.findOne({ _id: order._id });
-      if (!order) {
+      const updatedOrder = await Order.findOne({ _id: order._id });
+      if (updatedOrder === null) {
         await ctx.reply(ctx.i18n.t('generic_error'));
         return ctx.scene.leave();
+      }
+      else {
+        order = updatedOrder;
       }
 
       let lnInvoice = ctx.message.text.trim();
       const isValidLN = await validateLightningAddress(lnInvoice);
-      let res = {};
+      let res: InvoiceParseResult = {};
       if (isValidLN) {
         const laRes = await resolvLightningAddress(
           lnInvoice,
@@ -167,7 +183,7 @@ const addInvoicePHIWizard = new Scenes.WizardScene(
 
 const addFiatAmountWizard = new Scenes.WizardScene(
   'ADD_FIAT_AMOUNT_WIZARD_SCENE_ID',
-  async ctx => {
+  async (ctx: CommunityContext) => {
     try {
       const { order } = ctx.wizard.state;
       const action =
@@ -199,6 +215,8 @@ const addFiatAmountWizard = new Scenes.WizardScene(
 
       order.fiat_amount = fiatAmount;
       const currency = getCurrency(order.fiat_code);
+      if (currency === null)
+        throw new Error("currency is null");
       await messages.wizardAddFiatAmountCorrectMessage(
         ctx,
         currency,
@@ -218,7 +236,7 @@ const addFiatAmountWizard = new Scenes.WizardScene(
   }
 );
 
-module.exports = {
+export {
   addInvoiceWizard,
   addFiatAmountWizard,
   addInvoicePHIWizard,

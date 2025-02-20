@@ -1,25 +1,32 @@
 // @ts-check
-const { logger } = require('../../../logger');
-const { Community, Order } = require('../../../models');
-const { isFloat } = require('../../../util');
-const {
-  validateBuyOrder,
-  isBannedFromCommunity,
-  validateSeller,
-  validateSellOrder,
-  validateParams,
-} = require('../../validations');
-const messages = require('../../messages');
-const ordersActions = require('../../ordersActions');
-const { deletedCommunityMessage } = require('./messages');
-const { takebuy, takesell, takebuyValidation } = require('./takeOrder');
+import { logger } from '../../../logger';
+import { Community, Order } from '../../../models';
+import { isFloat } from '../../../util';
+import { validateBuyOrder, isBannedFromCommunity, validateSeller, validateSellOrder, validateParams } from '../../validations';
+import * as messages from '../../messages';
+import * as ordersActions from '../../ordersActions';
+import { deletedCommunityMessage } from './messages';
+import { takebuy, takesell, takebuyValidation } from './takeOrder';
 
-const Scenes = require('./scenes');
+import * as Scenes from './scenes';
+import { CommunityContext } from '../community/communityContext';
+import { MainContext } from '../../start';
+import { UserDocument } from '../../../models/user';
+import { ICommunity } from '../../../models/community';
+import { Chat } from 'telegraf/typings/core/types/typegram';
 
-const buyWizard = async ctx => enterWizard(ctx, ctx.user, 'buy');
-const sellWizard = async ctx => enterWizard(ctx, ctx.user, 'sell');
+interface EnterWizardState {
+  community?: ICommunity;
+  currency?: string;
+  currencies?: string[];
+  type: string;
+  user: UserDocument;
+}
 
-const sell = async ctx => {
+const buyWizard = async (ctx: CommunityContext) => enterWizard(ctx, ctx.user, 'buy');
+const sellWizard = async (ctx: CommunityContext) => enterWizard(ctx, ctx.user, 'sell');
+
+const sell = async (ctx: MainContext) => {
   try {
     const user = ctx.user;
     if (await isMaxPending(user))
@@ -42,10 +49,10 @@ const sell = async ctx => {
     let community = null;
     // If this message came from a group
     // We check if the there is a community for it
-    if (ctx.message.chat.type !== 'private') {
+    if (ctx.message?.chat.type !== 'private') {
       // Allow find communities case insensitive
       const regex = new RegExp(
-        ['^', '@' + ctx.message.chat.username, '$'].join(''),
+        ['^', '@' + (ctx.message?.chat as Chat.UserNameChat).username, '$'].join(''),
         'i'
       );
       community = await Community.findOne({ group: regex });
@@ -56,7 +63,7 @@ const sell = async ctx => {
       communityId = user.default_community_id;
       community = await Community.findOne({ _id: communityId });
       if (!community) {
-        user.default_community_id = null;
+        user.default_community_id = undefined;
         await user.save();
         return deletedCommunityMessage(ctx);
       }
@@ -90,7 +97,7 @@ const sell = async ctx => {
   }
 };
 
-const buy = async ctx => {
+const buy = async (ctx: MainContext) => {
   try {
     const user = ctx.user;
     if (await isMaxPending(user))
@@ -108,10 +115,10 @@ const buy = async ctx => {
     let community = null;
     // If this message came from a group
     // We check if the there is a community for it
-    if (ctx.message.chat.type !== 'private') {
+    if (ctx.message?.chat.type !== 'private') {
       // Allow find communities case insensitive
       const regex = new RegExp(
-        ['^', '@' + ctx.message.chat.username, '$'].join(''),
+        ['^', '@' + (ctx.message?.chat as Chat.UserNameChat).username, '$'].join(''),
         'i'
       );
       community = await Community.findOne({ group: regex });
@@ -124,7 +131,7 @@ const buy = async ctx => {
       communityId = user.default_community_id;
       community = await Community.findOne({ _id: communityId });
       if (!community) {
-        user.default_community_id = null;
+        user.default_community_id = undefined;
         await user.save();
         return deletedCommunityMessage(ctx);
       }
@@ -158,13 +165,15 @@ const buy = async ctx => {
   }
 };
 
-async function enterWizard(ctx, user, type) {
-  const state = {
+async function enterWizard(ctx: CommunityContext, user: UserDocument, type: string) {
+  const state: EnterWizardState = {
     type,
     user,
   };
   if (user.default_community_id) {
     const comm = await Community.findById(user.default_community_id);
+    if(comm === null)
+      throw new Error("comm not found");
     state.community = comm;
     state.currencies = comm.currencies;
     if (comm.currencies.length === 1) {
@@ -178,21 +187,27 @@ async function enterWizard(ctx, user, type) {
   await ctx.scene.enter(Scenes.CREATE_ORDER, state);
 }
 
-const isMaxPending = async user => {
+const isMaxPending = async (user: UserDocument) => {
   const pendingOrders = await Order.count({
     status: 'PENDING',
     creator_id: user._id,
   });
+  const maxPendingOrders = process.env.MAX_PENDING_ORDERS;
+  if(maxPendingOrders === undefined)
+    throw new Error("Environment variable MAX_PENDING_ORDERS is not defined");
   // We don't let users create too PENDING many orders
-  if (pendingOrders >= parseInt(process.env.MAX_PENDING_ORDERS)) {
+  if (pendingOrders >= parseInt(maxPendingOrders)) {
     return true;
   }
   return false;
 };
 
-const takeOrder = async ctx => {
+const takeOrder = async (ctx: MainContext) => {
   try {
-    const [orderId] = await validateParams(ctx, 2, '\\<_order id_\\>');
+    const validateParamsResult = await validateParams(ctx, 2, '\\<_order id_\\>');
+    if(validateParamsResult === null || validateParamsResult.length === 0)
+      throw new Error("validateParams failed");
+    const [orderId] = validateParamsResult;
     const order = await Order.findOne({
       _id: orderId,
       status: 'PENDING',
@@ -211,7 +226,7 @@ const takeOrder = async ctx => {
         return takesell(ctx, ctx, orderId);
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     switch (err.message) {
       case 'OrderNotFound':
         return ctx.reply(ctx.i18n.t('order_not_found'));
@@ -221,4 +236,4 @@ const takeOrder = async ctx => {
   }
 };
 
-module.exports = { buyWizard, sellWizard, buy, sell, isMaxPending, takeOrder };
+export { buyWizard, sellWizard, buy, sell, isMaxPending, takeOrder };

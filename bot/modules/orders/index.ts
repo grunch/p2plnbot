@@ -1,25 +1,18 @@
 // @ts-check
-const { userMiddleware } = require('../../middleware/user');
-const { logger } = require('../../../logger');
-const ordersActions = require('../../ordersActions');
+import { userMiddleware } from '../../middleware/user';
+import { logger } from '../../../logger';
+import * as ordersActions from '../../ordersActions';
 
-const commands = require('./commands');
-const messages = require('./messages');
-const {
-  tooManyPendingOrdersMessage,
-  notOrdersMessage,
-} = require('../../messages');
-const {
-  takeOrderActionValidation,
-  takeOrderValidation,
-  takesell,
-  takebuyValidation,
-  takebuy,
-} = require('./takeOrder');
-const { extractId } = require('../../../util');
-exports.Scenes = require('./scenes');
+import * as commands from './commands';
+import * as messages from './messages';
+import { tooManyPendingOrdersMessage, notOrdersMessage } from '../../messages';
+import { takeOrderActionValidation, takeOrderValidation, takesell, takebuyValidation, takebuy } from './takeOrder';
+import { extractId } from '../../../util';
+import { Telegraf } from 'telegraf';
+import { CommunityContext } from '../community/communityContext';
+export * as Scenes from './scenes';
 
-exports.configure = bot => {
+export const configure = (bot: Telegraf<CommunityContext>) => {
   bot.command(
     'takeorder',
     userMiddleware,
@@ -58,6 +51,8 @@ exports.configure = bot => {
   bot.command('listorders', userMiddleware, async ctx => {
     try {
       const orders = await ordersActions.getOrders(ctx.user);
+      if (orders === undefined)
+        throw new Error("orders is undefined");
       if (orders && orders.length === 0) {
         return await notOrdersMessage(ctx);
       }
@@ -78,7 +73,7 @@ exports.configure = bot => {
     takeOrderActionValidation,
     takeOrderValidation,
     async ctx => {
-      const text = ctx.update.callback_query.message.text;
+      const text = (ctx.update as any).callback_query.message.text;
       const orderId = extractId(text);
       if (!orderId) return;
       await takesell(ctx, bot, orderId);
@@ -91,9 +86,9 @@ exports.configure = bot => {
     takeOrderValidation,
     takebuyValidation,
     async ctx => {
-      const text = ctx.update.callback_query.message.text;
+      const text: string = (ctx.update as any).callback_query.message.text;
       const orderId = extractId(text);
-      if (!orderId) return;
+      if (orderId === null) return;
       await takebuy(ctx, bot, orderId);
     }
   );

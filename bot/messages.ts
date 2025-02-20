@@ -15,7 +15,7 @@ const {
 } = require('../util');
 const OrderEvents = require('./modules/events/orders');
 import { logger } from "../logger";
-import { MainContext } from './start';
+import { HasTelegram, MainContext } from './start';
 import { UserDocument } from '../models/user'
 import { IOrder } from '../models/order'
 import { Telegraf } from 'telegraf';
@@ -46,7 +46,7 @@ const startMessage = async (ctx: MainContext) => {
   }
 };
 
-const initBotErrorMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument) => {
+const initBotErrorMessage = async (ctx: MainContext, bot: MainContext, user: UserDocument) => {
   // Correct way to handle errors: https://github.com/telegraf/telegraf/issues/1757
   await bot.telegram.sendMessage(user.tg_id, ctx.i18n.t('init_bot_error')).catch((error) => {
     if (
@@ -106,7 +106,7 @@ const invoicePaymentRequestMessage = async (
   }
 };
 
-const pendingSellMessage = async (ctx: Telegraf<MainContext>, user: UserDocument, order: IOrder, channel: string, i18n: I18nContext) => {
+const pendingSellMessage = async (ctx: MainContext, user: UserDocument, order: IOrder, channel: string, i18n: I18nContext) => {
   try {
     const orderExpirationWindow =
       Number(process.env.ORDER_PUBLISHED_EXPIRATION_WINDOW) / 60 / 60;
@@ -131,7 +131,7 @@ const pendingSellMessage = async (ctx: Telegraf<MainContext>, user: UserDocument
   }
 };
 
-const pendingBuyMessage = async (bot: Telegraf<MainContext>, user: UserDocument, order: IOrder, channel: string, i18n: I18nContext) => {
+const pendingBuyMessage = async (bot: MainContext, user: UserDocument, order: IOrder, channel: string, i18n: I18nContext) => {
   try {
     const orderExpirationWindow =
       Number(process.env.ORDER_PUBLISHED_EXPIRATION_WINDOW) / 60 / 60;
@@ -275,7 +275,7 @@ const invoiceInvalidMessage = async (ctx: MainContext) => {
   }
 };
 
-const invalidOrderMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument) => {
+const invalidOrderMessage = async (ctx: MainContext, bot: HasTelegram, user: UserDocument) => {
   try {
     await bot.telegram.sendMessage(user.tg_id, ctx.i18n.t('order_id_invalid'));
   } catch (error) {
@@ -283,7 +283,7 @@ const invalidOrderMessage = async (ctx: MainContext, bot: Telegraf<MainContext>,
   }
 };
 
-const invalidTypeOrderMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument, type: IOrder["type"]) => {
+const invalidTypeOrderMessage = async (ctx: MainContext, bot: HasTelegram, user: UserDocument, type: IOrder["type"]) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -294,7 +294,7 @@ const invalidTypeOrderMessage = async (ctx: MainContext, bot: Telegraf<MainConte
   }
 };
 
-const alreadyTakenOrderMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument) => {
+const alreadyTakenOrderMessage = async (ctx: MainContext, bot: HasTelegram, user: UserDocument) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -305,7 +305,7 @@ const alreadyTakenOrderMessage = async (ctx: MainContext, bot: Telegraf<MainCont
   }
 };
 
-const invalidDataMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument) => {
+const invalidDataMessage = async (ctx: MainContext, bot: MainContext, user: UserDocument) => {
   try {
     await bot.telegram.sendMessage(user.tg_id, ctx.i18n.t('invalid_data'));
   } catch (error) {
@@ -313,7 +313,7 @@ const invalidDataMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, 
   }
 };
 
-const genericErrorMessage = async (bot: Telegraf<MainContext>, user: UserDocument, i18n: I18nContext) => {
+const genericErrorMessage = async (bot: MainContext, user: UserDocument, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(user.tg_id, i18n.t('generic_error'));
   } catch (error) {
@@ -321,7 +321,7 @@ const genericErrorMessage = async (bot: Telegraf<MainContext>, user: UserDocumen
   }
 };
 
-const beginTakeBuyMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, seller: UserDocument, order: IOrder) => {
+const beginTakeBuyMessage = async (ctx: MainContext, bot: HasTelegram, seller: UserDocument, order: IOrder) => {
   try {
     const expirationTime =
       Number(process.env.HOLD_INVOICE_EXPIRATION_WINDOW) / 60;
@@ -395,7 +395,7 @@ const showHoldInvoiceMessage = async (
 };
 
 const onGoingTakeBuyMessage = async (
-  bot: Telegraf<MainContext>,
+  bot: MainContext,
   seller: UserDocument,
   buyer: UserDocument,
   order: IOrder,
@@ -438,7 +438,7 @@ const onGoingTakeBuyMessage = async (
   }
 };
 
-const beginTakeSellMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, buyer: UserDocument, order: IOrder) => {
+const beginTakeSellMessage = async (ctx: MainContext, bot: HasTelegram, buyer: UserDocument, order: IOrder) => {
   try {
     const holdInvoiceExpiration = holdInvoiceExpirationInSecs();
     const orderExpiration =
@@ -472,7 +472,7 @@ const beginTakeSellMessage = async (ctx: MainContext, bot: Telegraf<MainContext>
 };
 
 const onGoingTakeSellMessage = async (
-  bot: Telegraf<MainContext>,
+  bot: MainContext,
   sellerUser: UserDocument,
   buyerUser: UserDocument,
   order: IOrder,
@@ -512,7 +512,7 @@ const onGoingTakeSellMessage = async (
 
 const takeSellWaitingSellerToPayMessage = async (
   ctx: MainContext,
-  bot: Telegraf<MainContext>,
+  bot: MainContext,
   buyerUser: UserDocument,
   order: IOrder
 ) => {
@@ -527,7 +527,7 @@ const takeSellWaitingSellerToPayMessage = async (
 };
 
 const releasedSatsMessage = async (
-  bot: Telegraf<MainContext>,
+  bot: MainContext,
   sellerUser: UserDocument,
   buyerUser: UserDocument,
   i18nBuyer: I18nContext,
@@ -593,11 +593,11 @@ const notOrderMessage = async (ctx: MainContext) => {
 };
 
 const publishBuyOrderMessage = async (
-  bot: Telegraf<MainContext>,
+  bot: MainContext,
   user: UserDocument,
   order: IOrder,
   i18n: I18nContext,
-  messageToUser: boolean
+  messageToUser: boolean = false
 ) => {
   try {
     let publishMessage = `⚡️🍊⚡️\n${order.description}\n`;
@@ -629,7 +629,7 @@ const publishBuyOrderMessage = async (
 };
 
 const publishSellOrderMessage = async (
-  ctx: Telegraf<MainContext>,
+  ctx: MainContext,
   user: UserDocument,
   order: IOrder,
   i18n: I18nContext,
@@ -845,7 +845,7 @@ const notValidIdMessage = async (ctx: MainContext) => {
   }
 };
 
-const addInvoiceMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, buyer: UserDocument, seller: UserDocument, order: IOrder) => {
+const addInvoiceMessage = async (ctx: MainContext, bot: MainContext, buyer: UserDocument, seller: UserDocument, order: IOrder) => {
   try {
     await bot.telegram.sendMessage(
       buyer.tg_id,
@@ -867,7 +867,7 @@ const addInvoiceMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, b
   }
 };
 
-const sendBuyerInfo2SellerMessage = async (bot: Telegraf<MainContext>, buyer: UserDocument, seller: UserDocument, order: IOrder, i18n: I18nContext) => {
+const sendBuyerInfo2SellerMessage = async (bot: MainContext, buyer: UserDocument, seller: UserDocument, order: IOrder, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       seller.tg_id,
@@ -884,7 +884,7 @@ const sendBuyerInfo2SellerMessage = async (bot: Telegraf<MainContext>, buyer: Us
   }
 };
 
-const cantTakeOwnOrderMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument) => {
+const cantTakeOwnOrderMessage = async (ctx: MainContext, bot: HasTelegram, user: UserDocument) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -915,7 +915,7 @@ const notOrdersMessage = async (ctx: MainContext) => {
   }
 };
 
-const notRateForCurrency = async (bot: Telegraf<MainContext>, user: UserDocument, i18n: I18nContext) => {
+const notRateForCurrency = async (bot: MainContext, user: UserDocument, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1107,7 +1107,7 @@ const counterPartyWantsCooperativeCancelMessage = async (
   }
 };
 
-const invoicePaymentFailedMessage = async (bot: Telegraf<MainContext>, user: UserDocument, i18n: I18nContext) => {
+const invoicePaymentFailedMessage = async (bot: MainContext, user: UserDocument, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1121,7 +1121,7 @@ const invoicePaymentFailedMessage = async (bot: Telegraf<MainContext>, user: Use
   }
 };
 
-const userCantTakeMoreThanOneWaitingOrderMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument) => {
+const userCantTakeMoreThanOneWaitingOrderMessage = async (ctx: MainContext, bot: MainContext, user: UserDocument) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1172,7 +1172,7 @@ const showInfoMessage = async (ctx: MainContext, user: UserDocument, config: ICo
   }
 };
 
-const buyerReceivedSatsMessage = async (bot: Telegraf<MainContext>, buyerUser: UserDocument, sellerUser: UserDocument, i18n: I18nContext) => {
+const buyerReceivedSatsMessage = async (bot: MainContext, buyerUser: UserDocument, sellerUser: UserDocument, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       buyerUser.tg_id,
@@ -1197,7 +1197,7 @@ const listCurrenciesResponse = async (ctx: MainContext, currencies: Array<IFiat>
   }
 };
 
-const priceApiFailedMessage = async (ctx: MainContext, bot: Telegraf<MainContext>, user: UserDocument) => {
+const priceApiFailedMessage = async (ctx: MainContext, bot: MainContext, user: UserDocument) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1393,7 +1393,7 @@ const toSellerExpiredOrderMessage = async (bot: Telegraf<MainContext>, user: Use
   }
 };
 
-const toBuyerDidntAddInvoiceMessage = async (bot: Telegraf<MainContext>, user: UserDocument, order: IOrder, i18n: I18nContext) => {
+const toBuyerDidntAddInvoiceMessage = async (bot: MainContext, user: UserDocument, order: IOrder, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1404,7 +1404,7 @@ const toBuyerDidntAddInvoiceMessage = async (bot: Telegraf<MainContext>, user: U
   }
 };
 
-const toSellerBuyerDidntAddInvoiceMessage = async (bot: Telegraf<MainContext>, user: UserDocument, order: IOrder, i18n: I18nContext) => {
+const toSellerBuyerDidntAddInvoiceMessage = async (bot: MainContext, user: UserDocument, order: IOrder, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1416,7 +1416,7 @@ const toSellerBuyerDidntAddInvoiceMessage = async (bot: Telegraf<MainContext>, u
 };
 
 const toAdminChannelBuyerDidntAddInvoiceMessage = async (
-  bot: Telegraf<MainContext>,
+  bot: MainContext,
   user: UserDocument,
   order: IOrder,
   i18n: I18nContext
@@ -1434,7 +1434,7 @@ const toAdminChannelBuyerDidntAddInvoiceMessage = async (
   }
 };
 
-const toSellerDidntPayInvoiceMessage = async (bot: Telegraf<MainContext>, user: UserDocument, order: IOrder, i18n: I18nContext) => {
+const toSellerDidntPayInvoiceMessage = async (bot: MainContext, user: UserDocument, order: IOrder, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1445,7 +1445,7 @@ const toSellerDidntPayInvoiceMessage = async (bot: Telegraf<MainContext>, user: 
   }
 };
 
-const toBuyerSellerDidntPayInvoiceMessage = async (bot: Telegraf<MainContext>, user: UserDocument, order: IOrder, i18n: I18nContext) => {
+const toBuyerSellerDidntPayInvoiceMessage = async (bot: MainContext, user: UserDocument, order: IOrder, i18n: I18nContext) => {
   try {
     await bot.telegram.sendMessage(
       user.tg_id,
@@ -1457,7 +1457,7 @@ const toBuyerSellerDidntPayInvoiceMessage = async (bot: Telegraf<MainContext>, u
 };
 
 const toAdminChannelSellerDidntPayInvoiceMessage = async (
-  bot: Telegraf<MainContext>,
+  bot: MainContext,
   user: UserDocument,
   order: IOrder,
   i18n: I18nContext

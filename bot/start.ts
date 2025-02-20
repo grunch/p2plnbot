@@ -1,4 +1,4 @@
-import { Telegraf, session, Context } from 'telegraf';
+import { Telegraf, session, Context, Telegram } from 'telegraf';
 import { I18n, I18nContext } from '@grammyjs/i18n';
 import { Message } from 'typegram'
 import { UserDocument } from '../models/user'
@@ -77,6 +77,10 @@ export interface OrderQuery {
   status?: string;
   buyer_id?: string;
   seller_id?: string;
+}
+
+export interface HasTelegram {
+  telegram: Telegram;
 }
 
 const askForConfirmation = async (user: UserDocument, command: string) => {

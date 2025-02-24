@@ -408,6 +408,12 @@ const onGoingTakeBuyMessage = async (
       seller.tg_id,
       i18nSeller.t('payment_received')
     );
+    //I need the currency symbol to show it in the message
+    let currency = getCurrency(order.fiat_code);
+    currency =
+      !!currency && !!currency.symbol_native
+        ? currency.symbol_native
+        : order.fiat_code;
     const holdInvoiceExpiration = holdInvoiceExpirationInSecs();
     const orderExpiration =
       holdInvoiceExpiration.expirationTimeInSecs -
@@ -421,6 +427,8 @@ const onGoingTakeBuyMessage = async (
     await bot.telegram.sendMessage(
       buyer.tg_id,
       i18nBuyer.t('someone_took_your_order', {
+        currency,
+        order,
         expirationTime,
         rate,
         days: ageInDays,

@@ -36,6 +36,8 @@ non_handle_error: 👤 Per utilizzare questo bot è necessario impostare il prop
 invoice_payment_request: |
   Qualcuno richiede di comprare da te ${order.amount} sats per ${currency} ${order.fiat_amount}.
 
+  Identificativo dell'ordine: #${order._id}
+  Metodo di pagamento: ${order.payment_method}
   Reputazione del compratore: ${rate}, giorni di utilizzo del bot: ${days}
 
   Nota: Conferma che l'immagine allegata corrisponda a quella inviata durante la creazione dell'ordine prima di pagare la fattura
@@ -119,10 +121,13 @@ payment_received: |
 
   Attendi. Se l'acquirente non collabora, il deposito di garanzia garanzia ti verrà verrà restituito.
 someone_took_your_order: |
-  🤖 Qualcuno ha preso il tuo ordine e mi ha già inviato i sats, per favore usa un metodo di pagamento fiat che ti permetta di inviare il denaro immediatamente e per cui non ci sia il rischio di congelamento i fondi.
+  🤖 identificativo dell'ordine: #${order._id}
+
+  Qualcuno ha preso il tuo ordine e mi ha già inviato i sats, per favore usa un metodo di pagamento fiat che ti permetta di inviare ${order.fiat_amount} ${currency} immediatamente e per cui non ci sia il rischio di congelamento i fondi.  
 
   Se per qualche motivo il metodo di pagamento mette in pausa il trasferimento e i fondi non arrivano in meno di ${expirationTime}, i satoshi torneranno al venditore, mettendo a rischio l'acquirente e non potrò costringere il venditore a inviare di nuovo i fondi.
 
+  Metodo di pagamento: ${order.payment_method}
   Reputazione del venditore: ${rate}, giorni di utilizzo del bot: ${days}
 
   Se accetti le condizioni, premi per continuare 👇
@@ -307,7 +312,7 @@ order_completed_by_admin: "Un amministratore ha completato l'ordine ID: ${orderI
 have_to_wait_for_counterpart: 🕒 Hai già effettuato questa operazione, devi attendere l'azione della controparte.
 ok_cooperativecancel: "👍 La controparte ha accettato e l'ordine ID: ${orderId} has been cancelled"
 refund_cooperativecancel: 💰 Hai ricevuto il rimborso del pagamento LN, non ci sono altre azioni da eseguire.
-init_cooperativecancel: | 
+init_cooperativecancel: |
   "🕒 Hai avviato la cancellazione dell'ordine Id: ${orderId}, anche la tua controparte deve indicarmi che desidera annullarlo. Se lui/lei non risponde, puoi aprire una disputa.
 
   Nessun amministratore ti contatterà per cancellare il tuo ordine, a meno che tu non apra prima una disputa."
@@ -547,7 +552,6 @@ npub_not_valid: |
   Esempio:
   /setnpub npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6
 # END modules/nostr
-
 # START modules/community
 community_admin: |
   <strong>Community Admin Mode</strong>
@@ -630,7 +634,7 @@ setinvoice_no_response: Non ci sono ordini da pagare.
 already_cancelled: L'offerta è già stata annullata!
 privacy: |
   *Informativa sulla Privacy*
-  
+
   La tua privacy è importante per noi e siamo impegnati a proteggere le tue informazioni personali. Questa Informativa sulla Privacy spiega quali informazioni raccogliamo, come, e per quale scopo.
 
   *1. Informazioni che raccogliamo:*  

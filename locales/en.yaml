@@ -3,7 +3,7 @@ start: |
 
   ${disclaimer}
   ---———— DISCLAIMER ————---
-  
+
   This bot will help you complete P2P Bitcoin transactions through the Lightning Network (LN).
 
   Once you start up the bot, you can use the following commands:
@@ -31,13 +31,15 @@ start: |
   You can find more information on how to use this bot here 👇
 
   https://lnp2pbot.com/learn
-  
+
   Make a quick and safe transaction!
 init_bot_error: to use this bot, you need to first initialize the boot with the command /start
 non_handle_error: 👤 To use this bot, you need to activate your Telegram Username. To activate it open the hamburger menu on the top left and select settings -> edit profile -> username
 invoice_payment_request: |
   Somebody wants to buy you ${order.amount} sats for ${currency} ${order.fiat_amount}.
 
+  Order ID: #${order._id}
+  Payment method: ${order.payment_method}
   Buyer Reputation: ${rate}, days using the bot: ${days}
 
   Note: Confirm that the attached image matches the one sent during order creation before paying the invoice
@@ -123,10 +125,13 @@ payment_received: |
 
   Wait a bit. The collateral will be returned to you if the buyer does not cooperate.
 someone_took_your_order: |
-  🤖 Someone took your order and already sent me the sats, please use a fiat payment processor that allows you to send the money immediately and in which there is no risk of freezing funds.
+  🤖 Order Id: #${order._id}
+
+  Someone took your order and already sent me the sats, please use a fiat payment processor that allows you to send ${order.fiat_amount} ${currency} immediately and in which there is no risk of freezing funds.  
 
   If, for any reason, your payment processor puts the payment on pause and the funds do not arrive in less than ${expirationTime}, the sats will return to the seller, putting the buyer at risk. I cannot force the seller to send the sats again.
 
+  Payment method: ${order.payment_method}
   Seller Reputation: ${rate}, days using the bot: ${days}
 
   If you agree with the above, press the button to continue 👇
@@ -153,7 +158,7 @@ buyer_took_your_order: |
   🤖 Order ID: #${orderId}
 
   @${buyerUsername} has taken your order and wants to buy your sats. Get in touch and tell him how to send you ${currency} ${fiatAmount} through ${paymentMethod}.
-  
+
   I will notify you when the buyer indicates that they have sent the fiat. After that, you should check if it has arrived.
 
   If the buyer does not respond, you can initiate a cancellation or a dispute. Remember, an administrator will NEVER contact you to resolve your order unless you open a dispute first.
@@ -170,7 +175,7 @@ order_detail: |
   ID: `${order._id}`
 
   Status previous to dispute: ${previousDisputeStatus}
-  
+
   Status: ${status}
 
   Creator: @${creator || ''}
@@ -276,7 +281,7 @@ you_have_been_banned: You have been banned!
 I_told_seller_you_sent_fiat: 🤖 I told @${sellerUsername} that you have sent the fiat money. When the seller confirms that they have received your money, they should release the funds. If they refuse, you can open a dispute.
 buyer_told_me_that_sent_fiat: |
   🤖 @${buyerUsername} has informed that he already sent you the fiat money. Once you confirm the reception, please release funds. You will not be able to create another order until you release funds.
-  
+
   After releasing, the money will go to the buyer and there will be no turning back, so only proceed with this process if you are 💯 sure.
 
   Press the following command if you want to release the sats to the buyer 👇
@@ -314,15 +319,15 @@ ok_cooperativecancel: '👍 Counterparty agreed and the order ID: ${orderId} has
 refund_cooperativecancel: 💰 You have received a refund of your lightning payment, there is no further action to make
 init_cooperativecancel: |
   🕒 You have started the cancellation of the order ID: ${orderId}, your counterparty must agree on the cancellation too. If they do not respond, you can open a dispute.
-  
-  No administrator will contact you to cancel your order unless you open a dispute first.  
-  
+
+  No administrator will contact you to cancel your order unless you open a dispute first.
+
 counterparty_wants_cooperativecancel: |
   😳 Your counterparty wants to cancel order ID: ${orderId}.
-  
+
   No administrator will contact you to cancel your order unless you open a dispute first.
-  
-  If you agree on such cancellation, please execute the following command 👇  
+
+  If you agree on such cancellation, please execute the following command 👇
 invoice_payment_failed: ⛔ I tried to send you the sats but the payment of your invoice failed, I will try ${attempts} more times in ${pendingPaymentWindow} minutes window, please check your node/wallet is online
 cant_take_more_orders: ⛔ Sorry! You can't take another order while you have others waiting for you
 seller_released: 💸 Seller has already released the satoshis, you must wait for your invoice to be paid.
@@ -542,7 +547,7 @@ maintenance: 🚨 Bot in maintenance, please try again later 🚨
 community_admin: |
   <strong>Community Admin Mode</strong>
   > ${community.name} (${community.group})
-  
+
   Public:
     ${community.public ? 'Yes' : 'No'}
   Fee:
@@ -578,7 +583,6 @@ npub_not_valid: |
   Example:
   /setnpub npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6
 # END modules/nostr
-
 # START modules/orders
 order_not_found: Order not found.
 # END modules/orders
@@ -611,7 +615,7 @@ bot_info: |
   Max routing fee: ${routing_fee}
 
   Node URI: `${node_uri}`
-  
+
   Node status: ${status}
 
   User info:
@@ -636,7 +640,7 @@ dispute_solver: 👮‍♂️ A solver will be attending your dispute, you can w
 setinvoice_no_response: You have no orders to be paid
 privacy: |
   *Privacy Policy*
-  
+
   Your privacy is important to us, and we are committed to protecting your personal information. This Privacy Policy explains what information we collect, how, and for what purpose.
 
   *1. Information We Collect:*  

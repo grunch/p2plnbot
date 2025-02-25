@@ -640,3 +640,5 @@ privacy: |
   *2. Como Usamos as Informações:* 
     - _Sistema de Reputação:_ Para construir e manter o sistema de reputação de cada usuário.
     - _Resolução de Disputas:_ Em caso de uma disputa, fornecemos ao mediador (solver) as seguintes informações: seu nome de usuário, ID do Telegram, número de transações concluídas, classificação da contraparte, número de dias usando o bot e o número de disputas acumuladas.
+check_solvers: Sua comunidade ${communityName} não possui solucionadores. Adicione pelo menos um dentro de ${remainingDays} dias para evitar que a comunidade seja desativada.
+check_solvers_last_warning: Sua comunidade ${communityName} não possui solucionadores. Adicione pelo menos um hoje para evitar que a comunidade seja desativada.
